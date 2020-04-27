@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
+# rosrun projeto_1/scripts main.py
+
 from __future__ import print_function, division
 import rospy
 import numpy as np
