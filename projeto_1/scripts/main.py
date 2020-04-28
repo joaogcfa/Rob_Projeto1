@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
-# rosrun projeto_1/scripts main.py
+# rosrun projeto_1 main.py
 
 from __future__ import print_function, division
 import rospy
@@ -35,6 +35,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Header
 
 import visao_module
+import ponto_fuga
 
 
 bridge = CvBridge()
@@ -66,10 +67,12 @@ tfl = 0
 tf_buffer = tf2_ros.Buffer()
 
 def recebe(msg):
+    
 	global x # O global impede a recriacao de uma variavel local, para podermos usar o x global ja'  declarado
 	global y
 	global z
 	global id
+
 	for marker in msg.markers:
 		id = marker.id
 		marcador = "ar_marker_" + str(id)
@@ -85,7 +88,7 @@ def recebe(msg):
 		x = trans.transform.translation.x
 		y = trans.transform.translation.y
 		z = trans.transform.translation.z
-		# ATENCAO: tudo o que vem a seguir e'  so para calcular um angulo
+		# ATENCAO: tudo o que vem a seguir eh so para calcular um angulo
 		# Para medirmos o angulo entre marcador e robo vamos projetar o eixo Z do marcador (perpendicular) 
 		# no eixo X do robo (que e'  a direcao para a frente)
 		t = transformations.translation_matrix([x, y, z])
@@ -104,15 +107,18 @@ def recebe(msg):
 		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
 
-
+PFx=0
+PFy=0
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
-    print("frame")
+    # print("frame")
     global cv_image
     global media
     global centro
 
     global resultados
+    global PFx
+    global PFy
 
 
     now = rospy.get_rostime()
@@ -128,7 +134,11 @@ def roda_todo_frame(imagem):
         cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
         # Note que os resultados já são guardados automaticamente na variável
         # chamada resultados
-        centro, imagem, resultados =  visao_module.processa(cv_image)        
+        PFx, PFy = ponto_fuga.coloca_ponto(cv_image)
+        centro, img, resultados =  visao_module.processa(cv_image)
+        
+
+
         for r in resultados:
             # print(r) - print feito para documentar e entender
             # o resultado            
@@ -136,7 +146,9 @@ def roda_todo_frame(imagem):
 
         depois = time.clock()
         # Desnecessário - Hough e MobileNet já abrem janelas
-        #cv2.imshow("Camera", cv_image)
+        cv2.imshow("Camera", img)
+        cv2.waitKey(1)
+
     except CvBridgeError as e:
         print('ex', e)
     
@@ -160,14 +172,29 @@ if __name__=="__main__":
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
 
     try:
-        # Inicializando - por default gira no sentido anti-horário
-        # vel = Twist(Vector3(0,0,0), Vector3(0,0,math.pi/10.0))
+        vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
         
         while not rospy.is_shutdown():
             for r in resultados:
                 print(r)
-            #velocidade_saida.publish(vel)
-            rospy.sleep(0.1)
+            # Centraliza o ponto de fuga e vai até ele enquano não acha creper da cor certa
+            # Centralizar no ponto de fuga
+            if len(centro) != 0:
+                if (PFx > centro[0]+10):
+                    print("PRIMEIRO")
+                    vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.3))
+                if (PFx < centro[0]-10):
+                    print("SEGUNDO")
+                    vel = Twist(Vector3(0,0,0), Vector3(0,0,0.3))
+                if (PFx < centro[0] + 20 and PFx > centro[0]-20):
+                    print("ULTIMO")
+                    vel = Twist(Vector3(0.3,0,0), Vector3(0,0,0))
+
+                velocidade_saida.publish(vel)
+                # rospy.sleep(0.5)
+
+
+        velocidade_saida.publish(vel)
 
     except rospy.ROSInterruptException:
         print("Ocorreu uma exceção com o rospy")
