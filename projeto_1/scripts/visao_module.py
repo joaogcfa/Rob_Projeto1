@@ -58,6 +58,30 @@ def identifica_cor(frame):
     cor_maior = np.array([180, 255, 255])
     segmentado_cor += cv2.inRange(frame_hsv, cor_menor, cor_maior)
 
+
+
+
+
+    #Filtro para o creeper verde do PROJETO 1
+    #filtro1_verde = np.array([76, 255, 255], dtype=np.uint8)
+    #filtro2_verde = np.array([62, 50, 50], dtype=np.uint8)
+    #mask_verde = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
+
+
+    #Filtro para o creeper rosa do PROJETO 1
+    #filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
+    #filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
+    #mask_rosa = cv2.inRange(frame_hsv, filtro2_rosa, filtro1_rosa)
+
+    #Filtro para o creeper azul do PROJETO 1
+    #filtro1_azul = np.array([110, 255, 255], dtype=np.uint8)
+    #filtro2_azul = np.array([97, 50, 50], dtype=np.uint8)
+    #mask_azul = cv2.inRange(P1_hsv, filtro2_azul, filtro1_azul)
+
+
+
+
+
     # Note que a notacão do numpy encara as imagens como matriz, portanto o enderecamento é
     # linha, coluna ou (y,x)
     # Por isso na hora de montar a tupla com o centro precisamos inverter, porque
@@ -108,4 +132,4 @@ def identifica_cor(frame):
     cv2.imshow('seg', segmentado_cor)
     cv2.waitKey(1)
 
-    return centro, result_frame, result_tuples
+    return centro, result_frame, result_tuples, media, maior_contorno_area

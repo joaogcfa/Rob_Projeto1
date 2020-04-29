@@ -37,7 +37,6 @@ from std_msgs.msg import Header
 import visao_module
 import ponto_fuga
 
-
 bridge = CvBridge()
 
 cv_image = None
@@ -106,7 +105,7 @@ def recebe(msg):
 		# Terminamos
 		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
-
+maior_area = 0
 PFx=0
 PFy=0
 # A função a seguir é chamada sempre que chega um novo frame
@@ -119,6 +118,7 @@ def roda_todo_frame(imagem):
     global resultados
     global PFx
     global PFy
+    global maior_area
 
 
     now = rospy.get_rostime()
@@ -135,7 +135,7 @@ def roda_todo_frame(imagem):
         # Note que os resultados já são guardados automaticamente na variável
         # chamada resultados
         PFx, PFy = ponto_fuga.coloca_ponto(cv_image)
-        centro, img, resultados =  visao_module.processa(cv_image)
+        centro, img, resultados, media, maior_area =  visao_module.processa(cv_image)
         
 
 
@@ -179,6 +179,10 @@ if __name__=="__main__":
                 print(r)
             # Centraliza o ponto de fuga e vai até ele enquano não acha creper da cor certa
             # Centralizar no ponto de fuga
+            # OU SEJA SE A MEDIA (ou len(media) no caso) (CENTRO DO CREPER ROSA) FOR ZERO NÃO TEM NADA ROSA ENTÃO O ROBO TEM QUE SEGUIR NA PISTA
+            # SE MEDIA FOR DIFERENTE DE ZERO DETECTOU ALGO ROSA, ENTÃO PARA DE ANDAR NA PISTA
+            # PASSA A CENTRALIZAR O CREEPER ROSA E IR NA DIREÇÃO DELE
+            # DERRUBAR E VOLTAR PRA PISTA
             if len(centro) != 0:
                 if (PFx > centro[0]+10):
                     print("PRIMEIRO")
