@@ -49,40 +49,46 @@ def coloca_ponto(frame):
     
     lines = cv2.HoughLinesP(linhas, 10, math.pi/180.0, 100, np.array([]), 45, 5)
 
-    a,b,c = lines.shape
+    if lines is not None:
+        a,b,c = lines.shape
 
-    hough_img_rgb = cv2.cvtColor(linhas, cv2.COLOR_GRAY2BGR)
+        hough_img_rgb = cv2.cvtColor(linhas, cv2.COLOR_GRAY2BGR)
 
-    coeficientes_angular=[]
-    coeficientes_linear=[]
+        coeficientes_angular=[]
+        coeficientes_linear=[]
+            
+        for i in range(a):
+            # Faz uma linha ligando o ponto inicial ao ponto final, com a cor vermelha (BGR)
+            cv2.line(hough_img_rgb, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 5, cv2.LINE_AA)
+            coef_angular = calcula_coef_ang((lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]))
+            coeficientes_angular.append(coef_angular)
+                        
+            coef_linear = calcula_coef_linear((lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]))
+            coeficientes_linear.append(coef_linear)
+                            
+        for c in range(len(coeficientes_angular)):
+            if coeficientes_angular[c] == min(coeficientes_angular) and coeficientes_angular[c]!=0:
+                menor = coeficientes_angular[c]
+                i_menor = c
+        maior = max(coeficientes_angular) 
+        #i_menor = coeficientes_angular.index(c)
+        i_maior = coeficientes_angular.index(maior)
+                        
+        linear_menor = coeficientes_linear[i_menor]                  
+        linear_maior = coeficientes_linear[i_maior]
         
-    for i in range(a):
-        # Faz uma linha ligando o ponto inicial ao ponto final, com a cor vermelha (BGR)
-        cv2.line(hough_img_rgb, (lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]), (0, 0, 255), 5, cv2.LINE_AA)
-        coef_angular = calcula_coef_ang((lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]))
-        coeficientes_angular.append(coef_angular)
-                      
-        coef_linear = calcula_coef_linear((lines[i][0][0], lines[i][0][1]), (lines[i][0][2], lines[i][0][3]))
-        coeficientes_linear.append(coef_linear)
-                         
-    for c in range(len(coeficientes_angular)):
-        if coeficientes_angular[c] == min(coeficientes_angular) and coeficientes_angular[c]!=0:
-            menor = coeficientes_angular[c]
-            i_menor = c
-    maior = max(coeficientes_angular) 
-    #i_menor = coeficientes_angular.index(c)
-    i_maior = coeficientes_angular.index(maior)
-                      
-    linear_menor = coeficientes_linear[i_menor]                  
-    linear_maior = coeficientes_linear[i_maior]
+        
+        PFx, PFy = ponto_de_fuga(maior, menor, linear_maior, linear_menor)
+        
+        # DESENHANDO PONTO DE FUGA
+        cor=(255, 255, 0)
+        cv2.circle(frame, (int(PFx), int(PFy)), 20, cor)
+        cv2.circle(frame, (int(PFx),int(PFy)), 4, cor, 1)
+        cv2.imshow("mask", linhas)
+        
+        #cv2.line(frame, (lines[i][0][0], lines[i][0][1]), (int(PG[0]),int(PG[1])), cor,3)
+        return PFx, PFy
+
+    return [(0,0), (0,0)]
+
     
-    
-    PFx, PFy = ponto_de_fuga(maior, menor, linear_maior, linear_menor)
-    
-    # DESENHANDO PONTO DE FUGA
-    cor=(255, 255, 0)
-    cv2.circle(frame, (int(PFx), int(PFy)), 20, cor)
-    cv2.circle(frame, (int(PFx),int(PFy)), 4, cor, 1)
-    
-    #cv2.line(frame, (lines[i][0][0], lines[i][0][1]), (int(PG[0]),int(PG[1])), cor,3)
-    return PFx, PFy

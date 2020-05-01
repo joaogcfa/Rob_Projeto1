@@ -35,14 +35,14 @@ class Follower:
       cv2.circle(image, (cx, cy), 20, (0,0,255), -1)
     # END CIRCLE
 
-    cv2.imshow("window", image)
-    cv2.waitKey(3)
+    # cv2.imshow("window", image)
+    # cv2.waitKey(3)
     
     return cx, cy
 
 
 
-rospy.init_node('follower')
-follower = Follower()
-rospy.spin()
+# rospy.init_node('follower')
+# follower = Follower()
+# rospy.spin()
 # END ALL

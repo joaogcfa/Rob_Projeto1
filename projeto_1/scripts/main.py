@@ -37,6 +37,7 @@ from std_msgs.msg import Header
 import visao_module
 import ponto_fuga
 
+
 bridge = CvBridge()
 
 cv_image = None
@@ -105,7 +106,7 @@ def recebe(msg):
 		# Terminamos
 		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
-maior_area = 0
+
 PFx=0
 PFy=0
 # A função a seguir é chamada sempre que chega um novo frame
@@ -118,7 +119,6 @@ def roda_todo_frame(imagem):
     global resultados
     global PFx
     global PFy
-    global maior_area
 
 
     now = rospy.get_rostime()
@@ -126,28 +126,24 @@ def roda_todo_frame(imagem):
     lag = now-imgtime # calcula o lag
     delay = lag.nsecs
     # print("delay ", "{:.3f}".format(delay/1.0E9))
-    if delay > atraso and check_delay==True:
-        print("Descartando por causa do delay do frame:", delay)
-        return 
+
     try:
         antes = time.clock()
         cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
         # Note que os resultados já são guardados automaticamente na variável
         # chamada resultados
-        PFx, PFy = ponto_fuga.coloca_ponto(cv_image)
-        centro, img, resultados, media, maior_area =  visao_module.processa(cv_image)
-        
+
+        cv_image_ponto = cv_image[325:,][:][:]
+        PFx, PFy = ponto_fuga.coloca_ponto(cv_image_ponto)
+        centro, img, resultados =  visao_module.processa(cv_image)
+    
 
 
-        for r in resultados:
-            # print(r) - print feito para documentar e entender
-            # o resultado            
-            pass
 
         depois = time.clock()
         # Desnecessário - Hough e MobileNet já abrem janelas
-        cv2.imshow("Camera", img)
-        cv2.waitKey(1)
+        # cv2.imshow("Camera", mask)
+        # cv2.waitKey(1)
 
     except CvBridgeError as e:
         print('ex', e)
@@ -155,10 +151,10 @@ def roda_todo_frame(imagem):
 if __name__=="__main__":
     rospy.init_node("cor")
 
-    topico_imagem = "/camera/rgb/image_raw/compressed"
+    topico_imagem = "/raspicam/rgb/image_raw/compressed"
 
     recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
-    recebedor = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
+    recebedor2 = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
 
 
     print("Usando ", topico_imagem)
@@ -179,10 +175,6 @@ if __name__=="__main__":
                 print(r)
             # Centraliza o ponto de fuga e vai até ele enquano não acha creper da cor certa
             # Centralizar no ponto de fuga
-            # OU SEJA SE A MEDIA (ou len(media) no caso) (CENTRO DO CREPER ROSA) FOR ZERO NÃO TEM NADA ROSA ENTÃO O ROBO TEM QUE SEGUIR NA PISTA
-            # SE MEDIA FOR DIFERENTE DE ZERO DETECTOU ALGO ROSA, ENTÃO PARA DE ANDAR NA PISTA
-            # PASSA A CENTRALIZAR O CREEPER ROSA E IR NA DIREÇÃO DELE
-            # DERRUBAR E VOLTAR PRA PISTA
             if len(centro) != 0:
                 if (PFx > centro[0]+10):
                     print("PRIMEIRO")
@@ -202,5 +194,3 @@ if __name__=="__main__":
 
     except rospy.ROSInterruptException:
         print("Ocorreu uma exceção com o rospy")
-
-
