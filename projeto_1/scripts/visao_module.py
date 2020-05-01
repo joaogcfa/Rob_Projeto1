@@ -27,8 +27,8 @@ def processa(frame):
 
 
     def cross(img_rgb, point, color, width,length):
-        cv2.line(img_rgb, (point[0] - int(length/2), point[1]),  (point[0] + int(length/2), point[1]), color ,width, length)
-        cv2.line(img_rgb, (point[0], point[1] - int(length/2)), (point[0], point[1] + int(length/2)),color ,width, length)
+        cv2.line(img_rgb, (int(point[0]) - int(length/2), int(point[1])),  (int(point[0]) + int(length/2), int(point[1])), color ,width, length)
+        cv2.line(img_rgb, (int(point[0]), int(point[1]) - int(length/2)), (int(point[0]), int(point[1]) + int(length/2)),color ,width, length)
 
     cross(result_frame, centro, [255,0,0], 1, 17)
 
@@ -50,13 +50,13 @@ def identifica_cor(frame):
     # do vermelho:
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    cor_menor = np.array([0, 50, 50])
-    cor_maior = np.array([8, 255, 255])
-    segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
+    #cor_menor = np.array([0, 50, 50])
+    #cor_maior = np.array([8, 255, 255])
+    #segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
 
-    cor_menor = np.array([172, 50, 50])
-    cor_maior = np.array([180, 255, 255])
-    segmentado_cor += cv2.inRange(frame_hsv, cor_menor, cor_maior)
+    #cor_menor = np.array([172, 50, 50])
+    #cor_maior = np.array([180, 255, 255])
+    #segmentado_cor += cv2.inRange(frame_hsv, cor_menor, cor_maior)
 
 
 
@@ -65,21 +65,18 @@ def identifica_cor(frame):
     #Filtro para o creeper verde do PROJETO 1
     #filtro1_verde = np.array([76, 255, 255], dtype=np.uint8)
     #filtro2_verde = np.array([62, 50, 50], dtype=np.uint8)
-    #mask_verde = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
+    #segmentado_cor = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
 
 
     #Filtro para o creeper rosa do PROJETO 1
-    #filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
-    #filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
-    #mask_rosa = cv2.inRange(frame_hsv, filtro2_rosa, filtro1_rosa)
+    filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
+    filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
+    segmentado_cor = cv2.inRange(frame_hsv, filtro2_rosa, filtro1_rosa)
 
     #Filtro para o creeper azul do PROJETO 1
     #filtro1_azul = np.array([110, 255, 255], dtype=np.uint8)
     #filtro2_azul = np.array([97, 50, 50], dtype=np.uint8)
-    #mask_azul = cv2.inRange(P1_hsv, filtro2_azul, filtro1_azul)
-
-
-
+    #segmentado_cor = cv2.inRange(P1_hsv, filtro2_azul, filtro1_azul)
 
 
     # Note que a notacão do numpy encara as imagens como matriz, portanto o enderecamento é
@@ -123,13 +120,9 @@ def identifica_cor(frame):
     else:
         media = (0, 0)
 
-    # Representa a area e o centro do maior contorno no frame
-    font = cv2.FONT_HERSHEY_COMPLEX_SMALL
-    cv2.putText(frame,"{:d} {:d}".format(*media),(20,100), 1, 4,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame,"{:0.1f}".format(maior_contorno_area),(20,50), 1, 4,(255,255,255),2,cv2.LINE_AA)
 
     # cv2.imshow('video', frame)
     # cv2.imshow('seg', segmentado_cor)
-    cv2.waitKey(1)
+    #cv2.waitKey(1)
 
     return media, maior_contorno_area

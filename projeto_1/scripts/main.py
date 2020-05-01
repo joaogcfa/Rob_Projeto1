@@ -36,6 +36,7 @@ from std_msgs.msg import Header
 
 import visao_module
 import ponto_fuga
+import segue_amarelo
 
 
 bridge = CvBridge()
@@ -107,8 +108,9 @@ def recebe(msg):
 		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
 
-PFx=0
-PFy=0
+cx = 0
+maior_contorno_area=0
+point_fuga = segue_amarelo.Follower()
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
     # print("frame")
@@ -117,8 +119,8 @@ def roda_todo_frame(imagem):
     global centro
 
     global resultados
-    global PFx
-    global PFy
+    global cx
+    global maior_contorno_area
 
 
     now = rospy.get_rostime()
@@ -129,21 +131,17 @@ def roda_todo_frame(imagem):
 
     try:
         antes = time.clock()
-        cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
-        # Note que os resultados já são guardados automaticamente na variável
-        # chamada resultados
-
-        cv_image_ponto = cv_image[325:,][:][:]
-        PFx, PFy = ponto_fuga.coloca_ponto(cv_image_ponto)
+        cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")       
+        temp_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
+        
+        cx = point_fuga.image_callback(temp_image)
         centro, img, resultados =  visao_module.processa(cv_image)
-    
-
-
+        media, maior_contorno_area = visao_module.identifica_cor(cv_image) 
 
         depois = time.clock()
         # Desnecessário - Hough e MobileNet já abrem janelas
-        # cv2.imshow("Camera", mask)
-        # cv2.waitKey(1)
+        cv2.imshow("Camera", temp_image)
+        cv2.waitKey(1)
 
     except CvBridgeError as e:
         print('ex', e)
@@ -151,7 +149,7 @@ def roda_todo_frame(imagem):
 if __name__=="__main__":
     rospy.init_node("cor")
 
-    topico_imagem = "/raspicam/rgb/image_raw/compressed"
+    topico_imagem = "/camera/rgb/image_raw/compressed"
 
     recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
     recebedor2 = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
@@ -174,20 +172,33 @@ if __name__=="__main__":
             for r in resultados:
                 print(r)
             # Centraliza o ponto de fuga e vai até ele enquano não acha creper da cor certa
+
+            print("len", len(media))
+            print ("ponto_rosa", media)
+            # if len(media) != 0 and len(centro) != 0:
+            #     if media[0] != 0:
+            #         if media[0] > (centro[0] + tolerancia):
+            #             vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+            #         if media[0] < (centro[0] - tolerancia):
+            #             vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+            #         if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
+            #             vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+
+                    # velocidade_saida.publish(vel)
+                    # rospy.sleep(0.3)
+                
+            
             # Centralizar no ponto de fuga
-            if len(centro) != 0:
-                if (PFx > centro[0]+10):
-                    print("PRIMEIRO")
-                    vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.3))
-                if (PFx < centro[0]-10):
-                    print("SEGUNDO")
-                    vel = Twist(Vector3(0,0,0), Vector3(0,0,0.3))
-                if (PFx < centro[0] + 20 and PFx > centro[0]-20):
-                    print("ULTIMO")
-                    vel = Twist(Vector3(0.3,0,0), Vector3(0,0,0))
+            if len(centro) != 0: #and media[0] == 0:
+                if cx > (centro[0] + tolerancia):
+                    vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                if cx < (centro[0] - tolerancia):
+                    vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
+                    vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
 
                 velocidade_saida.publish(vel)
-                # rospy.sleep(0.5)
+                # rospy.sleep(0.3)
 
 
         velocidade_saida.publish(vel)

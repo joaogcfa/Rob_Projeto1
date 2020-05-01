@@ -40,6 +40,7 @@ def coloca_ponto(frame):
     mask = cv2.inRange(gray, cap1, cap2)
     #cv2.imshow('mask', mask)
     
+
     mask = cv2.blur(mask, (3,3))
     
     hough_img_rgb2 = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
@@ -71,7 +72,7 @@ def coloca_ponto(frame):
                 menor = coeficientes_angular[c]
                 i_menor = c
         maior = max(coeficientes_angular) 
-        #i_menor = coeficientes_angular.index(c)
+        # i_menor = coeficientes_angular.index(c)
         i_maior = coeficientes_angular.index(maior)
                         
         linear_menor = coeficientes_linear[i_menor]                  
@@ -84,7 +85,6 @@ def coloca_ponto(frame):
         cor=(255, 255, 0)
         cv2.circle(frame, (int(PFx), int(PFy)), 20, cor)
         cv2.circle(frame, (int(PFx),int(PFy)), 4, cor, 1)
-        cv2.imshow("mask", linhas)
         
         #cv2.line(frame, (lines[i][0][0], lines[i][0][1]), (int(PG[0]),int(PG[1])), cor,3)
         return PFx, PFy
