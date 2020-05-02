@@ -86,8 +86,8 @@ def identifica_cor(frame):
 
 
     def cross(img_rgb, point, color, width,length):
-        cv2.line(img_rgb, (point[0] - length/2, point[1]),  (point[0] + length/2, point[1]), color ,width, length)
-        cv2.line(img_rgb, (point[0], point[1] - length/2), (point[0], point[1] + length/2),color ,width, length)
+        cv2.line(img_rgb, (int(point[0]) - int(length/2), int(point[1])),  (int(point[0]) + int(length/2), int(point[1])), color ,width, length)
+        cv2.line(img_rgb, (int(point[0]), int(point[1]) - int(length/2)), (int(point[0]), int(point[1]) + int(length/2)),color ,width, length)
 
 
 

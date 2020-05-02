@@ -33,6 +33,7 @@ from ar_track_alvar_msgs.msg import AlvarMarker, AlvarMarkers
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Image
 from std_msgs.msg import Header
+from sensor_msgs.msg import Image, CompressedImage, LaserScan
 
 import visao_module
 import ponto_fuga
@@ -107,13 +108,16 @@ def recebe(msg):
 		# Terminamos
 		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
+distancia = 0
+def scaneou(dado):
+	global distancia
+	distancia = dado.ranges[0]
 
 cx = 0
 maior_contorno_area=0
 point_fuga = segue_amarelo.Follower()
-# A função a seguir é chamada sempre que chega um novo frame
+
 def roda_todo_frame(imagem):
-    # print("frame")
     global cv_image
     global media
     global centro
@@ -125,9 +129,9 @@ def roda_todo_frame(imagem):
 
     now = rospy.get_rostime()
     imgtime = imagem.header.stamp
-    lag = now-imgtime # calcula o lag
+    lag = now-imgtime
     delay = lag.nsecs
-    # print("delay ", "{:.3f}".format(delay/1.0E9))
+
 
     try:
         antes = time.clock()
@@ -158,8 +162,9 @@ if __name__=="__main__":
     print("Usando ", topico_imagem)
 
     velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
+    recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
 
-
+    crepeer_centralizado=False
     tolerancia = 25
 
     # Exemplo de categoria de resultados
@@ -169,39 +174,46 @@ if __name__=="__main__":
         vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
         
         while not rospy.is_shutdown():
-            for r in resultados:
-                print(r)
-            # Centraliza o ponto de fuga e vai até ele enquano não acha creper da cor certa
-
-            print("len", len(media))
-            print ("ponto_rosa", media)
-            # if len(media) != 0 and len(centro) != 0:
-            #     if media[0] != 0:
-            #         if media[0] > (centro[0] + tolerancia):
-            #             vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
-            #         if media[0] < (centro[0] - tolerancia):
-            #             vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
-            #         if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
-            #             vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
-
-                    # velocidade_saida.publish(vel)
-                    # rospy.sleep(0.3)
                 
+            if len(media) != 0 and len(centro) != 0:
+                while media[0] != 0:
+                    print ("Achou ROSA")
+                    if crepeer_centralizado == False:
             
-            # Centralizar no ponto de fuga
-            if len(centro) != 0: #and media[0] == 0:
-                if cx > (centro[0] + tolerancia):
-                    vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
-                if cx < (centro[0] - tolerancia):
-                    vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
-                if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
-                    vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                        if media[0] > (centro[0] + tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                            velocidade_saida.publish(vel)
+                        if media[0] < (centro[0] - tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                            velocidade_saida.publish(vel)
+                        if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
+                            crepeer_centralizado = True
+                    
+                            
+                    else:
+                        while distancia > 0.23:
+                            vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                            rospy.sleep(0.3)
+                            velocidade_saida.publish(vel)
+                            if not (media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia)):
+                                crepeer_centralizado = False
+                        if distancia <= 0.23:
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+                            velocidade_saida.publish(vel)
+                            break
 
-                velocidade_saida.publish(vel)
-                # rospy.sleep(0.3)
+            
+                
+                # Centralizar no ponto de fuga
+                if len(centro) != 0:
+                    if cx > (centro[0] + tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                    if cx < (centro[0] - tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                    if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
+                        vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
 
-
-        velocidade_saida.publish(vel)
+                    velocidade_saida.publish(vel)
 
     except rospy.ROSInterruptException:
         print("Ocorreu uma exceção com o rospy")
