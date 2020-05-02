@@ -165,6 +165,7 @@ if __name__=="__main__":
     recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
 
     crepeer_centralizado=False
+    parado = False
     tolerancia = 25
 
     # Exemplo de categoria de resultados
@@ -176,8 +177,8 @@ if __name__=="__main__":
         while not rospy.is_shutdown():
                 
             if len(media) != 0 and len(centro) != 0:
-                while media[0] != 0:
-                    print ("Achou ROSA")
+                while media[0] != 0 and parado == False:
+                    # print ("Achou ROSA")
                     if crepeer_centralizado == False:
             
                         if media[0] > (centro[0] + tolerancia):
@@ -190,20 +191,52 @@ if __name__=="__main__":
                             crepeer_centralizado = True
                     
                             
-                    else:
-                        while distancia > 0.23:
-                            vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
-                            rospy.sleep(0.3)
-                            velocidade_saida.publish(vel)
-                            if not (media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia)):
-                                crepeer_centralizado = False
-                        if distancia <= 0.23:
-                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
-                            velocidade_saida.publish(vel)
-                            break
+                    else:		
 
-            
-                
+                        if len(media) != 0 and len(centro) != 0:
+
+                            vel = Twist(Vector3(0.3,0,0), Vector3(0,0,0))
+
+                            # print("Média: {0}, {1}".format(media[0], media[1]))
+                            # print("Centro: {0}, {1}".format(centro[0], centro[1]))
+                            # print("A DISTANCIA EH", distancia)
+
+                            
+                            if distancia < 0.50:
+
+                                velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
+                                velocidade_saida.publish(velocidade)
+                                rospy.sleep(0.6)
+                                print("A DISTANCIA eh", distancia)
+                                while distancia > 0.32:
+                                    velocidade = Twist(Vector3(0.3, 0, 0), Vector3(0, 0, 0))
+                                    velocidade_saida.publish(velocidade)
+                                    rospy.sleep(0.2)
+
+                                    print("A DISTANCIA EH", distancia)
+
+                                if distancia < 0.32:
+                                    print("HI")
+                                    velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
+                                    velocidade_saida.publish(velocidade)
+                                    rospy.sleep(2.0)
+                                    parado = True
+
+                                    
+                            if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
+                                crepeer_centralizado = False
+
+                        velocidade_saida.publish(vel)
+
+                if parado == True and cx == None:
+                    print("comeca a girar")
+                    velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, math.pi/2))
+                    velocidade_saida.publish(velocidade)
+                    rospy.sleep(2)
+                    # velocidade = Twist(Vector3(0.4, 0, 0), Vector3(0, 0, 0))
+                    # velocidade_saida.publish(velocidade)
+                    # rospy.sleep(0.5)
+                     
                 # Centralizar no ponto de fuga
                 if len(centro) != 0:
                     if cx > (centro[0] + tolerancia):
@@ -212,6 +245,7 @@ if __name__=="__main__":
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
                     if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
                         vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                    
 
                     velocidade_saida.publish(vel)
 
