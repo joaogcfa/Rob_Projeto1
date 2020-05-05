@@ -80,7 +80,7 @@ def recebe(msg):
 		id = marker.id
 		marcador = "ar_marker_" + str(id)
 
-		print(tf_buffer.can_transform(frame, marcador, rospy.Time(0)))
+		#print(tf_buffer.can_transform(frame, marcador, rospy.Time(0)))
 		header = Header(frame_id=marcador)
 		# Procura a transformacao em sistema de coordenadas entre a base do robo e o marcador numero 100
 		# Note que para seu projeto 1 voce nao vai precisar de nada que tem abaixo, a 
@@ -183,7 +183,8 @@ if __name__=="__main__":
         vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
         
         while not rospy.is_shutdown():
-                
+            print("bx:", bx) 
+            print("cx:", cx)       
             if len(media) != 0 and len(centro) != 0:
                 while media[0] != 0 and parado == False:
                     # print ("Achou ROSA")
@@ -204,11 +205,12 @@ if __name__=="__main__":
                         if len(media) != 0 and len(centro) != 0:
 
                             vel = Twist(Vector3(0.3,0,0), Vector3(0,0,0))
+                            velocidade_saida.publish(vel)
 
                             # print("Média: {0}, {1}".format(media[0], media[1]))
                             # print("Centro: {0}, {1}".format(centro[0], centro[1]))
                             # print("A DISTANCIA EH", distancia)
-
+                            
                             
                             if distancia < 0.50:
 
@@ -230,13 +232,13 @@ if __name__=="__main__":
                                     rospy.sleep(2.0)
                                     # achou_amarelo_dnv = True
                                     parado = True
-
-                                    
-                            if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
+                        if not (media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia)):
                                 crepeer_centralizado = False
+                                    
+                            
 
-                        velocidade_saida.publish(vel)
-                print("bx:", bx)
+                        #velocidade_saida.publish(vel)
+                
                 while parado == True and bx == None: #and achou_amarelo_dnv == True:
                     print("comeca a girar")
                     velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0,math.pi/8.0))
@@ -244,10 +246,16 @@ if __name__=="__main__":
                     rospy.sleep(0.2)
 
                 while bx != None and cx ==None:
-                    
-                    velocidade = Twist(Vector3(0.2, 0, 0), Vector3(0, 0, 0))
-                    velocidade_saida.publish(velocidade)
-                    rospy.sleep(0.2)
+                    if bx > (centro[0] + tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                    if bx < (centro[0] - tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                    if (bx < (centro[0] + tolerancia) and bx > (centro[0]-tolerancia)):
+                        vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                    velocidade_saida.publish(vel)
+                    #velocidade = Twist(Vector3(0.2, 0, 0), Vector3(0, 0, 0))
+                    #velocidade_saida.publish(velocidade)
+                    #rospy.sleep(0.2)
                      
                 # Centralizar no ponto de fuga
                 if len(centro) != 0:
