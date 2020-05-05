@@ -38,6 +38,7 @@ from sensor_msgs.msg import Image, CompressedImage, LaserScan
 import visao_module
 import ponto_fuga
 import segue_amarelo
+import procura_amarelo
 
 
 bridge = CvBridge()
@@ -106,7 +107,7 @@ def recebe(msg):
 		angulo_marcador_robo = math.degrees(math.acos(cosa))
 
 		# Terminamos
-		print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
+		# print("id: {} x {} y {} z {} angulo {} ".format(id, x,y,z, angulo_marcador_robo))
 
 distancia = 0
 def scaneou(dado):
@@ -114,8 +115,10 @@ def scaneou(dado):
 	distancia = dado.ranges[0]
 
 cx = 0
+bx = 0
 maior_contorno_area=0
 point_fuga = segue_amarelo.Follower()
+point_fuga2 = procura_amarelo.Follower2()
 
 def roda_todo_frame(imagem):
     global cv_image
@@ -124,6 +127,7 @@ def roda_todo_frame(imagem):
 
     global resultados
     global cx
+    global bx
     global maior_contorno_area
 
 
@@ -139,6 +143,7 @@ def roda_todo_frame(imagem):
         temp_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
         
         cx = point_fuga.image_callback(temp_image)
+        bx = point_fuga2.image_callback(temp_image)
         centro, img, resultados =  visao_module.processa(cv_image)
         media, maior_contorno_area = visao_module.identifica_cor(cv_image) 
 
@@ -163,9 +168,12 @@ if __name__=="__main__":
 
     velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
     recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
+    # aqui
+    tfl = tf2_ros.TransformListener(tf_buffer) #conversao do sistema de coordenadas
 
     crepeer_centralizado=False
     parado = False
+    achou_amarelo_dnv = False
     tolerancia = 25
 
     # Exemplo de categoria de resultados
@@ -220,6 +228,7 @@ if __name__=="__main__":
                                     velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
                                     velocidade_saida.publish(velocidade)
                                     rospy.sleep(2.0)
+                                    # achou_amarelo_dnv = True
                                     parado = True
 
                                     
@@ -227,18 +236,22 @@ if __name__=="__main__":
                                 crepeer_centralizado = False
 
                         velocidade_saida.publish(vel)
-
-                if parado == True and cx == None:
+                print("bx:", bx)
+                while parado == True and bx == None: #and achou_amarelo_dnv == True:
                     print("comeca a girar")
-                    velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, math.pi/2))
+                    velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0,math.pi/8.0))
                     velocidade_saida.publish(velocidade)
-                    rospy.sleep(2)
-                    # velocidade = Twist(Vector3(0.4, 0, 0), Vector3(0, 0, 0))
-                    # velocidade_saida.publish(velocidade)
-                    # rospy.sleep(0.5)
+                    rospy.sleep(0.2)
+
+                while bx != None and cx ==None:
+                    
+                    velocidade = Twist(Vector3(0.2, 0, 0), Vector3(0, 0, 0))
+                    velocidade_saida.publish(velocidade)
+                    rospy.sleep(0.2)
                      
                 # Centralizar no ponto de fuga
                 if len(centro) != 0:
+                    # achou_amarelo_dnv = False
                     if cx > (centro[0] + tolerancia):
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
                     if cx < (centro[0] - tolerancia):
