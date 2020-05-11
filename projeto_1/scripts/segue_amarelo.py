@@ -15,8 +15,8 @@ class Follower:
     upper_yellow = numpy.array([ 30, 255, 255])
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
-    cv2.imshow("segue_amarelo", mask)
-    cv2.waitKey(1)
+    # cv2.imshow("segue_amarelo", mask)
+    # cv2.waitKey(1)
 
     
     h, w, d = image.shape

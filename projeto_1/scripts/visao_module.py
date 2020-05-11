@@ -39,7 +39,7 @@ def processa(frame):
 
 
 
-def identifica_cor(frame):
+def identifica_cor(frame, cor):
     '''
     Segmenta o maior objeto cuja cor é parecida com cor_h (HUE da cor, no espaço HSV).
     '''
@@ -50,33 +50,30 @@ def identifica_cor(frame):
     # do vermelho:
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    #cor_menor = np.array([0, 50, 50])
-    #cor_maior = np.array([8, 255, 255])
-    #segmentado_cor = cv2.inRange(frame_hsv, cor_menor, cor_maior)
+    filtro1_verde = np.array([65, 255, 255], dtype=np.uint8)
+    filtro2_verde = np.array([62, 150, 50], dtype=np.uint8)
 
-    #cor_menor = np.array([172, 50, 50])
-    #cor_maior = np.array([180, 255, 255])
-    #segmentado_cor += cv2.inRange(frame_hsv, cor_menor, cor_maior)
+    filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
+    filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
 
-
-
+    filtro1_azul = np.array([110, 255, 255], dtype=np.uint8)
+    filtro2_azul = np.array([97, 100, 50], dtype=np.uint8)
 
 
     #Filtro para o creeper verde do PROJETO 1
-    #filtro1_verde = np.array([76, 255, 255], dtype=np.uint8)
-    #filtro2_verde = np.array([62, 50, 50], dtype=np.uint8)
-    #segmentado_cor = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
-
+    if cor == 'verde':
+       
+        segmentado_cor = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
 
     #Filtro para o creeper rosa do PROJETO 1
-    filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
-    filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
-    segmentado_cor = cv2.inRange(frame_hsv, filtro2_rosa, filtro1_rosa)
+    elif cor == 'rosa':
+        
+        segmentado_cor = cv2.inRange(frame_hsv, filtro2_rosa, filtro1_rosa)
 
     #Filtro para o creeper azul do PROJETO 1
-    #filtro1_azul = np.array([110, 255, 255], dtype=np.uint8)
-    #filtro2_azul = np.array([97, 50, 50], dtype=np.uint8)
-    #segmentado_cor = cv2.inRange(P1_hsv, filtro2_azul, filtro1_azul)
+    elif cor == 'azul':
+       
+        segmentado_cor = cv2.inRange(frame_hsv, filtro2_azul, filtro1_azul)
 
 
     # Note que a notacão do numpy encara as imagens como matriz, portanto o enderecamento é

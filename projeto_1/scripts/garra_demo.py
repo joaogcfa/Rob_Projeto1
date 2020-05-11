@@ -452,41 +452,63 @@ def main():
     print("\nPress Ctrl-D to exit at any time\n")
     print("\n============ Press `Enter` to begin the tutorial by setting up the moveit_commander ...\n")
     raw_input()
-    tutorial = MoveGroupPythonIntefaceTutorial()
+    garra = MoveGroupPythonIntefaceTutorial()
 
+    print("\n============ Press `Enter` to open gripper  ...\n")
+    raw_input()
+    garra.open_gripper()
+    
+    
     print("\n============ Press `Enter` to go to init joint state ...\n")
     raw_input()
-    tutorial.go_to_init_joint_state()
+    garra.go_to_init_joint_state()
+    
+    
+    print("\n============ Press `Enter` to close gripper  ...\n")
+    raw_input()
+    garra.close_gripper()
 
 
     print("\n============ Press `Enter` to go to home joint state ...\n")
     raw_input()
-    tutorial.go_to_home_joint_state()
-
-    print("\n============ Press `Enter` to open gripper  ...\n")
-    raw_input()
-    tutorial.open_gripper()
-
-    print("\n============ Press `Enter` to close gripper  ...\n")
-    raw_input()
-    tutorial.close_gripper()
-
-    print("\n============ Press `Enter` to go to init goal ...\n")
-    raw_input()
-    tutorial.go_to_zero_position_goal()
+    garra.go_to_home_joint_state()
 
 
-    print("\n============ Press `Enter` to go to home goal ...\n")
-    raw_input()
-    tutorial.go_to_home_position_goal()
+    # tutorial = MoveGroupPythonIntefaceTutorial()
 
-    print("\n============ Press `Enter` to open gripper  ...\n")
-    raw_input()
-    tutorial.open_gripper()
+    # print("\n============ Press `Enter` to go to init joint state ...\n")
+    # raw_input()
+    # tutorial.go_to_init_joint_state()
 
-    print("\n============ Press `Enter` to close gripper  ...\n")
-    raw_input()
-    tutorial.close_gripper()
+
+    # print("\n============ Press `Enter` to go to home joint state ...\n")
+    # raw_input()
+    # tutorial.go_to_home_joint_state()
+
+    # print("\n============ Press `Enter` to open gripper  ...\n")
+    # raw_input()
+    # tutorial.open_gripper()
+
+    # print("\n============ Press `Enter` to close gripper  ...\n")
+    # raw_input()
+    # tutorial.close_gripper()
+
+    # print("\n============ Press `Enter` to go to init goal ...\n")
+    # raw_input()
+    # tutorial.go_to_zero_position_goal()
+
+
+    # print("\n============ Press `Enter` to go to home goal ...\n")
+    # raw_input()
+    # tutorial.go_to_home_position_goal()
+
+    # print("\n============ Press `Enter` to open gripper  ...\n")
+    # raw_input()
+    # tutorial.open_gripper()
+
+    # print("\n============ Press `Enter` to close gripper  ...\n")
+    # raw_input()
+    # tutorial.close_gripper()
 
 
 
@@ -499,4 +521,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-

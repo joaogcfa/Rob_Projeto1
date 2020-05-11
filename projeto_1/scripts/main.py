@@ -39,6 +39,8 @@ import visao_module
 import ponto_fuga
 import segue_amarelo
 import procura_amarelo
+import garra_demo
+import mobilenet_simples
 
 
 bridge = CvBridge()
@@ -46,10 +48,11 @@ bridge = CvBridge()
 cv_image = None
 media = []
 centro = []
-atraso = 1.5E9 # 1 segundo e meio. Em nanossegundos
+atraso = 1.5E9
 
 
-area = 0.0 # Variavel com a area do maior contorno
+
+area = 0.0
 
 # Só usar se os relógios ROS da Raspberry e do Linux desktop estiverem sincronizados. 
 # Descarta imagens que chegam atrasadas demais
@@ -75,6 +78,7 @@ def recebe(msg):
 	global y
 	global z
 	global id
+
 
 	for marker in msg.markers:
 		id = marker.id
@@ -119,6 +123,12 @@ bx = 0
 maior_contorno_area=0
 point_fuga = segue_amarelo.Follower()
 point_fuga2 = procura_amarelo.Follower2()
+#tutorial = garra_demo.MoveGroupPythonIntefaceTutorial()
+#fecha_creeper = False
+goal = ['azul', 0, 'bicycle']
+
+lista_detect = None
+img_detect = None
 
 def roda_todo_frame(imagem):
     global cv_image
@@ -129,7 +139,10 @@ def roda_todo_frame(imagem):
     global cx
     global bx
     global maior_contorno_area
-
+    global cor
+    global fecha_creeper
+    global lista_detect
+    global img_detect
 
     now = rospy.get_rostime()
     imgtime = imagem.header.stamp
@@ -145,16 +158,22 @@ def roda_todo_frame(imagem):
         cx = point_fuga.image_callback(temp_image)
         bx = point_fuga2.image_callback(temp_image)
         centro, img, resultados =  visao_module.processa(cv_image)
-        media, maior_contorno_area = visao_module.identifica_cor(cv_image) 
+        media, maior_contorno_area = visao_module.identifica_cor(cv_image, goal[0])
+
+        img_detect, lista_detect = mobilenet_simples.detect(cv_image)
+
+        print(lista_detect)
+        # fecha_creeper = tutorial.close_gripper()
 
         depois = time.clock()
-        # Desnecessário - Hough e MobileNet já abrem janelas
+        
         cv2.imshow("Camera", temp_image)
         cv2.waitKey(1)
 
     except CvBridgeError as e:
         print('ex', e)
-    
+
+
 if __name__=="__main__":
     rospy.init_node("cor")
 
@@ -163,31 +182,43 @@ if __name__=="__main__":
     recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
     recebedor2 = rospy.Subscriber("/ar_pose_marker", AlvarMarkers, recebe) # Para recebermos notificacoes de que marcadores foram vistos
 
+    
 
     print("Usando ", topico_imagem)
 
     velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
     recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
-    # aqui
     tfl = tf2_ros.TransformListener(tf_buffer) #conversao do sistema de coordenadas
 
     crepeer_centralizado=False
     parado = False
     achou_amarelo_dnv = False
-    tolerancia = 25
+    ta_com_creeper = False 
+    tolerancia = 15
 
     # Exemplo de categoria de resultados
     # [('chair', 86.965459585189819, (90, 141), (177, 265))]
+        # goal = ["blue", 23, "bird"]
 
     try:
         vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
         
         while not rospy.is_shutdown():
-            print("bx:", bx) 
-            print("cx:", cx)       
             if len(media) != 0 and len(centro) != 0:
+
+
+                # Centralizar na linha amarela
+                if len(centro) != 0 and ta_com_creeper == False:
+                    if cx > (centro[0] + tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                    if cx < (centro[0] - tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                    if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
+                        vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                    velocidade_saida.publish(vel)
+
+                #Encontra creeper da cor escolhida
                 while media[0] != 0 and parado == False:
-                    # print ("Achou ROSA")
                     if crepeer_centralizado == False:
             
                         if media[0] > (centro[0] + tolerancia):
@@ -204,46 +235,40 @@ if __name__=="__main__":
 
                         if len(media) != 0 and len(centro) != 0:
 
-                            vel = Twist(Vector3(0.3,0,0), Vector3(0,0,0))
-                            velocidade_saida.publish(vel)
-
-                            # print("Média: {0}, {1}".format(media[0], media[1]))
-                            # print("Centro: {0}, {1}".format(centro[0], centro[1]))
-                            # print("A DISTANCIA EH", distancia)
+                            vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0))
+                            velocidade_saida.publish(vel)                            
                             
-                            
-                            if distancia < 0.50:
+                            if distancia < 0.35:
 
                                 velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
                                 velocidade_saida.publish(velocidade)
                                 rospy.sleep(0.6)
                                 print("A DISTANCIA eh", distancia)
-                                while distancia > 0.32:
-                                    velocidade = Twist(Vector3(0.3, 0, 0), Vector3(0, 0, 0))
+                                while distancia > 0.22:
+                                    velocidade = Twist(Vector3(0.05, 0, 0), Vector3(0, 0, 0))
                                     velocidade_saida.publish(velocidade)
                                     rospy.sleep(0.2)
 
                                     print("A DISTANCIA EH", distancia)
 
-                                if distancia < 0.32:
+                                if distancia < 0.22:
                                     print("HI")
                                     velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
                                     velocidade_saida.publish(velocidade)
                                     rospy.sleep(2.0)
-                                    # achou_amarelo_dnv = True
+                                    raw_input()
+                                    ta_com_creeper = True
                                     parado = True
                         if not (media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia)):
                                 crepeer_centralizado = False
                                     
-                            
-
-                        #velocidade_saida.publish(vel)
                 
-                while parado == True and bx == None: #and achou_amarelo_dnv == True:
-                    print("comeca a girar")
+                while parado == True and bx == None:
+                    print("Começa a girar")
                     velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0,math.pi/8.0))
                     velocidade_saida.publish(velocidade)
                     rospy.sleep(0.2)
+
 
                 while bx != None and cx ==None:
                     if bx > (centro[0] + tolerancia):
@@ -253,22 +278,43 @@ if __name__=="__main__":
                     if (bx < (centro[0] + tolerancia) and bx > (centro[0]-tolerancia)):
                         vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
                     velocidade_saida.publish(vel)
-                    #velocidade = Twist(Vector3(0.2, 0, 0), Vector3(0, 0, 0))
-                    #velocidade_saida.publish(velocidade)
-                    #rospy.sleep(0.2)
-                     
-                # Centralizar no ponto de fuga
-                if len(centro) != 0:
-                    # achou_amarelo_dnv = False
-                    if cx > (centro[0] + tolerancia):
-                        vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
-                    if cx < (centro[0] - tolerancia):
-                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
-                    if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
-                        vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                
+                # MobileNet aqui dentro
+                while len(centro) != 0 and ta_com_creeper == True:
+
+                    # [(objeto, bla, (bla,bla), (bla,bla)), (kldkfd)]
+
+                
+                    while len(lista_detect) == 0 or lista_detect[0][0] != goal[2]:
+                        if cx > (centro[0] + tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                        if cx < (centro[0] - tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                        if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
+                            vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                        velocidade_saida.publish(vel)
+
+                    while lista_detect[0][0] == goal[2] and len(lista_detect) != 0:
+                        x_detect = (lista_detect[0][2][0] + lista_detect[0][3][0])/2
+                        print("DISTÂNCIA DO BYCICLE: ", distancia)
+                        if x_detect > (centro[0] + tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                        if x_detect < (centro[0] - tolerancia):
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                        if (x_detect < (centro[0] + tolerancia) and x_detect > (centro[0]-tolerancia)) and distancia > 0.4:
+                            vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                        if distancia <= 0.4:
+                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+                            velocidade_saida.publish(vel)
+                            rospy.sleep(0.5)
+                            print("COÉ MENOR DEU CERTO DA UM ENTER NESSA BAGAÇA")
+                            raw_input()
+
+
+                        velocidade_saida.publish(vel)
                     
 
-                    velocidade_saida.publish(vel)
 
+                        
     except rospy.ROSInterruptException:
         print("Ocorreu uma exceção com o rospy")

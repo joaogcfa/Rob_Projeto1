@@ -15,8 +15,8 @@ class Follower2:
     upper_yellow = numpy.array([ 30, 255, 255])
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
-    cv2.imshow("procura_amarelo", mask)
-    cv2.waitKey(1)
+    # cv2.imshow("procura_amarelo", mask)
+    # cv2.waitKey(1)
 
     
     #h, w, d = image.shape
@@ -30,7 +30,7 @@ class Follower2:
       bx = int(M['m10']/M['m00'])
       by = int(M['m01']/M['m00'])
   
-      cv2.circle(image, (bx, by), 20, (0,0,255), -1)
+      # cv2.circle(image, (bx, by), 20, (0,0,255), -1)
     
     return bx
 
