@@ -125,7 +125,10 @@ point_fuga = segue_amarelo.Follower()
 point_fuga2 = procura_amarelo.Follower2()
 #tutorial = garra_demo.MoveGroupPythonIntefaceTutorial()
 #fecha_creeper = False
-goal = ['azul', 0, 'bicycle']
+goal = ['azul', 0, 'bird']
+# goal1 = ['azul', 11, 'cat']
+# goal2 = ['verde', 21, 'dog']
+# goal3 = ['rosa', 12, 'bycicle']
 
 lista_detect = None
 img_detect = None
@@ -162,7 +165,7 @@ def roda_todo_frame(imagem):
 
         img_detect, lista_detect = mobilenet_simples.detect(cv_image)
 
-        print(lista_detect)
+        # print(lista_detect)
         # fecha_creeper = tutorial.close_gripper()
 
         depois = time.clock()
@@ -219,49 +222,29 @@ if __name__=="__main__":
 
                 #Encontra creeper da cor escolhida
                 while media[0] != 0 and parado == False:
-                    if crepeer_centralizado == False:
+                    #if crepeer_centralizado == False:
             
-                        if media[0] > (centro[0] + tolerancia):
-                            vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
-                            velocidade_saida.publish(vel)
-                        if media[0] < (centro[0] - tolerancia):
-                            vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
-                            velocidade_saida.publish(vel)
-                        if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia):
-                            crepeer_centralizado = True
-                    
-                            
-                    else:		
-
-                        if len(media) != 0 and len(centro) != 0:
-
-                            vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0))
-                            velocidade_saida.publish(vel)                            
-                            
-                            if distancia < 0.35:
-
-                                velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
-                                velocidade_saida.publish(velocidade)
-                                rospy.sleep(0.6)
-                                print("A DISTANCIA eh", distancia)
-                                while distancia > 0.22:
-                                    velocidade = Twist(Vector3(0.05, 0, 0), Vector3(0, 0, 0))
-                                    velocidade_saida.publish(velocidade)
-                                    rospy.sleep(0.2)
-
-                                    print("A DISTANCIA EH", distancia)
-
-                                if distancia < 0.22:
-                                    print("HI")
-                                    velocidade = Twist(Vector3(0, 0, 0), Vector3(0, 0, 0))
-                                    velocidade_saida.publish(velocidade)
-                                    rospy.sleep(2.0)
-                                    raw_input()
-                                    ta_com_creeper = True
-                                    parado = True
-                        if not (media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia)):
-                                crepeer_centralizado = False
-                                    
+                    if media[0] > (centro[0] + tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                        velocidade_saida.publish(vel)
+                    if media[0] < (centro[0] - tolerancia):
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                        velocidade_saida.publish(vel)
+                    if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia) and distancia > 0.3:
+                        vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0))
+                        velocidade_saida.publish(vel)
+                        print ("Estou indo reto até o creeper")
+                        # crepeer_centralizado = True
+                    if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia) and distancia <= 0.3:                            
+                        vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+                        velocidade_saida.publish(vel)
+                        rospy.sleep(2.0)
+                        print("PAREI, PEGA O CREEPER!")
+                        raw_input()
+                        ta_com_creeper = True
+                        parado = True
+                        
+            
                 
                 while parado == True and bx == None:
                     print("Começa a girar")
@@ -270,20 +253,19 @@ if __name__=="__main__":
                     rospy.sleep(0.2)
 
 
-                while bx != None and cx ==None:
+                while bx != None and cx == None:
+                    print("to seguindo BX")
                     if bx > (centro[0] + tolerancia):
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
                     if bx < (centro[0] - tolerancia):
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
                     if (bx < (centro[0] + tolerancia) and bx > (centro[0]-tolerancia)):
                         vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                        print("to indo para frente BX")
                     velocidade_saida.publish(vel)
                 
                 # MobileNet aqui dentro
                 while len(centro) != 0 and ta_com_creeper == True:
-
-                    # [(objeto, bla, (bla,bla), (bla,bla)), (kldkfd)]
-
                 
                     while len(lista_detect) == 0 or lista_detect[0][0] != goal[2]:
                         if cx > (centro[0] + tolerancia):
@@ -292,11 +274,12 @@ if __name__=="__main__":
                             vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
                         if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
                             vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                            print("achei cx e to indo nele")
                         velocidade_saida.publish(vel)
 
                     while lista_detect[0][0] == goal[2] and len(lista_detect) != 0:
                         x_detect = (lista_detect[0][2][0] + lista_detect[0][3][0])/2
-                        print("DISTÂNCIA DO BYCICLE: ", distancia)
+                        print("DISTÂNCIA DA CAIXA: ", distancia)
                         if x_detect > (centro[0] + tolerancia):
                             vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
                         if x_detect < (centro[0] - tolerancia):
@@ -307,7 +290,7 @@ if __name__=="__main__":
                             vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
                             velocidade_saida.publish(vel)
                             rospy.sleep(0.5)
-                            print("COÉ MENOR DEU CERTO DA UM ENTER NESSA BAGAÇA")
+                            print("DEU CERTO, DÁ ENTER")
                             raw_input()
 
 

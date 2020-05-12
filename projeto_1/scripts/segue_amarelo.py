@@ -11,7 +11,7 @@ class Follower:
   def image_callback(self, image):
     cx = None
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower_yellow = numpy.array([ 29,  50,  50])
+    lower_yellow = numpy.array([ 29,  100,  100])
     upper_yellow = numpy.array([ 30, 255, 255])
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
