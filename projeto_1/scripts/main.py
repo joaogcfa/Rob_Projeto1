@@ -126,9 +126,9 @@ point_fuga2 = procura_amarelo.Follower2()
 #tutorial = garra_demo.MoveGroupPythonIntefaceTutorial()
 #fecha_creeper = False
 goal = ['azul', 0, 'bird']
-# goal1 = ['azul', 11, 'cat']
-# goal2 = ['verde', 21, 'dog']
-# goal3 = ['rosa', 12, 'bycicle']
+# goal = ['azul', 11, 'cat']
+# goal = ['verde', 21, 'dog']
+# goal = ['rosa', 12, 'bycicle']
 
 lista_detect = None
 img_detect = None
@@ -221,7 +221,7 @@ if __name__=="__main__":
                     velocidade_saida.publish(vel)
 
                 #Encontra creeper da cor escolhida
-                while media[0] != 0 and parado == False:
+                while media[0] != 0 and parado == False: #and id==goal[1]
                     #if crepeer_centralizado == False:
             
                     if media[0] > (centro[0] + tolerancia):
@@ -230,11 +230,34 @@ if __name__=="__main__":
                     if media[0] < (centro[0] - tolerancia):
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
                         velocidade_saida.publish(vel)
-                    if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia) and distancia > 0.3:
+                    if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia) and distancia > 0.3: #Aumentar essa distacia
                         vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0))
                         velocidade_saida.publish(vel)
                         print ("Estou indo reto até o creeper")
                         # crepeer_centralizado = True
+                    #Quando chegar perto, tenta igualar o x do robo com o x do creeper!
+                    #if distancia < d:
+                        #if x > (centro[0] + tolerancia):
+                        #    vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                        #   velocidade_saida.publish(vel)
+                        #if x < (centro[0] - tolerancia):
+                        #    vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                        #    velocidade_saida.publish(vel)
+                        #if x < (centro[0] + tolerancia) and x > (centro[0]-tolerancia) and distancia > 0.3: 
+                        #    vel = Twist(Vector3(0.1,0,0), Vector3(0,0,0))
+                        #    velocidade_saida.publish(vel)
+                        #    print ("Estou indo reto até o creeper centralizado pelo x")
+                        #if x < (centro[0] + tolerancia) and x > (centro[0]-tolerancia) and distancia <= 0.3:                            
+                            #vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
+                            #velocidade_saida.publish(vel)
+                            #rospy.sleep(2.0)
+                            #print("PAREI, PEGA O CREEPER!")
+                            #raw_input()
+                            #ta_com_creeper = True
+                            #parado = True
+                            
+
+
                     if media[0] < (centro[0] + tolerancia) and media[0] > (centro[0]-tolerancia) and distancia <= 0.3:                            
                         vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
                         velocidade_saida.publish(vel)
