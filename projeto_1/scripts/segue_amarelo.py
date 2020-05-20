@@ -11,7 +11,7 @@ class Follower:
   def image_callback(self, image):
     cx = None
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower_yellow = numpy.array([ 29,  100,  100])
+    lower_yellow = numpy.array([ 29, 250,  250])
     upper_yellow = numpy.array([ 30, 255, 255])
     mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
 
@@ -20,7 +20,7 @@ class Follower:
 
     
     h, w, d = image.shape
-    search_top = 3*h/4
+    search_top = 67*h/100
     search_bot = search_top + 20
     mask[0:search_top, 0:w] = 0
     mask[search_bot:h, 0:w] = 0

@@ -290,7 +290,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         # We can get the joint values from the group and adjust some of the values:
         joint_goal = move_group.get_current_joint_values()
         
-        home_angles =  (0., -0.25, 0.17, 0.24) # joints 1,2,3,4
+        home_angles =  (0., 0.125, -0.127, 0.033) # joints 1,2,3,4
         
         joint_goal = home_angles 
 
