@@ -196,6 +196,8 @@ if __name__=="__main__":
     parado = False
     achou_amarelo_dnv = False
     ta_com_creeper = False
+    #ta_perto = False
+    #area_creeper_perto = 200
     tolerancia = 10
     distancia_y_centralizar = 10e-5 * 3
     distancia_y_centralizar_negativa = -10e-5 * 3
@@ -229,8 +231,20 @@ if __name__=="__main__":
                 #Encontra creeper da cor escolhida
                 while media[0] != 0 and parado == False and id==goal[1]:
                     # print("Distância: ", distancia)
+                    #if maior_contorno_area < area_creeper_perto:
+                        # if cx > (centro[0] + tolerancia):
+                        #     vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
+                        # if cx < (centro[0] - tolerancia):
+                        #     vel = Twist(Vector3(0,0,0), Vector3(0,0,0.1))
+                        # if (cx < (centro[0] + tolerancia) and cx > (centro[0]-tolerancia)):
+                        #     vel = Twist(Vector3(0.15,0,0), Vector3(0,0,0))
+                        # velocidade_saida.publish(vel)
+                    #else:
+                        #ta_perto = True
+
+
                     print(goal)
-                    if centraliza_y == False:
+                    if centraliza_y == False: # and ta_perto ==True:
                         if media[0] > (centro[0] + tolerancia):
                             vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
                             velocidade_saida.publish(vel)
