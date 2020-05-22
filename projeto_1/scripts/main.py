@@ -65,7 +65,7 @@ y = 0
 z = 0 
 id = 0
 
-frame = "camera_link"
+frame = "end_effector_link"
 # frame = "head_camera"  # DESCOMENTE para usar com webcam USB via roslaunch tag_tracking usbcam
 
 tfl = 0
@@ -199,7 +199,7 @@ if __name__=="__main__":
     tolerancia = 10
     distancia_y_centralizar = 10e-5 * 3
     distancia_y_centralizar_negativa = -10e-5 * 3
-    distancia_x_centralizar = 0.06
+    distancia_x_centralizar = 0.1
 
 
 
@@ -211,6 +211,8 @@ if __name__=="__main__":
         vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
         
         while not rospy.is_shutdown():
+
+            print (goal)
             if len(media) != 0 and len(centro) != 0:
 
 
@@ -227,6 +229,7 @@ if __name__=="__main__":
                 #Encontra creeper da cor escolhida
                 while media[0] != 0 and parado == False and id==goal[1]:
                     # print("Distância: ", distancia)
+                    print(goal)
                     if centraliza_y == False:
                         if media[0] > (centro[0] + tolerancia):
                             vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
@@ -301,11 +304,10 @@ if __name__=="__main__":
                 
                 # MobileNet aqui dentro
                 while len(centro) != 0 and ta_com_creeper == True:
-
-
-                    if len (lista_detect) != 0 and len(lista_detect[0]) !=0 :
-                        if lista_detect == goal[2]:
-                            x_detect = (lista_detect[0][2][0] + lista_detect[0][3][0])/2
+                    objeto = lista_detect
+                    if len (objeto) != 0 :
+                        if objeto[0][0] == goal[2]:
+                            x_detect = (objeto[0][2][0] + objeto[0][3][0])/2
                             print("DISTÂNCIA DA CAIXA: ", distancia)
                             if x_detect > (centro[0] + tolerancia):
                                 vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
@@ -316,12 +318,12 @@ if __name__=="__main__":
                             if distancia <= 0.4:
                                 vel = Twist(Vector3(0,0,0), Vector3(0,0,0))
                                 velocidade_saida.publish(vel)
-                                rospy.sleep(0.5)
+                                rospy.sleep(0.05)
                                 print("VAMO MENÓ ABRE ESSA GARRA DESSA BAGAÇA PELO AMOR DE DEUS DEU CERTO")
                                 raw_input()
                             velocidade_saida.publish(vel)
 
-                        if lista_detect != goal[2]:
+                        if objeto[0][0] != goal[2]:
                             if cx > (centro[0] + tolerancia):
                                 vel = Twist(Vector3(0,0,0), Vector3(0,0,-0.1))
                             if cx < (centro[0] - tolerancia):
