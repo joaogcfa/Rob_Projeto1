@@ -50,8 +50,8 @@ def identifica_cor(frame, cor):
     # do vermelho:
     frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    filtro1_verde = np.array([65, 255, 255], dtype=np.uint8)
-    filtro2_verde = np.array([62, 150, 50], dtype=np.uint8)
+    filtro1_verde = np.array([70, 255, 255], dtype=np.uint8)
+    filtro2_verde = np.array([50, 50, 50], dtype=np.uint8)
 
     filtro1_rosa = np.array([160, 255, 255], dtype=np.uint8)
     filtro2_rosa = np.array([150, 50, 50], dtype=np.uint8)
@@ -62,7 +62,7 @@ def identifica_cor(frame, cor):
 
     #Filtro para o creeper verde do PROJETO 1
     if cor == 'verde':
-       
+           
         segmentado_cor = cv2.inRange(frame_hsv, filtro2_verde, filtro1_verde)
 
     #Filtro para o creeper rosa do PROJETO 1
